@@ -16,7 +16,7 @@ O Ecoa Fono é uma API REST desenvolvida para a disciplina de Arquitetura Orient
 
 O sistema foi criado com o objetivo de recomendar exercícios fonoaudiológicos personalizados com base na faixa etária e no objetivo do usuário, promovendo bem-estar, desenvolvimento da fala, comunicação e exercícios vocais.
 
-O projeto utiliza arquitetura em camadas, persistência em banco MySQL e integração com serviço externo de CEP através da API ViaCEP.
+O projeto utiliza arquitetura em camadas, persistência em banco MySQL e integração com serviço externo através da API ViaCEP.
 
 ---
 
@@ -87,6 +87,69 @@ Dessa forma, o projeto aplica conceitos de Arquitetura Orientada a Serviços e W
 * ViaCEP API
 * Postman
 
+---
+
+# Arquitetura do Projeto
+
+O projeto foi estruturado utilizando arquitetura em camadas.
+
+## Fluxo da Aplicação
+
+```text
+                    ┌───────────────────────┐
+                    │       Postman         │
+                    │ Cliente HTTP/REST API │
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │      Controller       │
+                    │ Recebe requisições    │
+                    │ e retorna respostas   │
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │        Service        │
+                    │ Regras de negócio     │
+                    │ e integrações         │
+                    └───────┬─────┬─────────┘
+                            │     │
+                            │     ▼
+                            │  ┌────────────────┐
+                            │  │ ViaCEP API     │
+                            │  │ Serviço externo│
+                            │  └────────────────┘
+                            │
+                            ▼
+                    ┌───────────────────────┐
+                    │      Repository       │
+                    │ Acesso ao banco       │
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │        MySQL          │
+                    │ Persistência de dados │
+                    └───────────────────────┘
+```
+
+---
+
+# Estrutura de Pastas
+
+```text
+src/main/java/com/ecoafono
+
+├── config
+├── controller
+├── domain/model
+├── dto
+├── enums
+├── exception
+├── repository
+└── service
+```
 
 ---
 
@@ -104,6 +167,19 @@ COLLATE utf8mb4_unicode_ci;
 
 ---
 
+# Flyway
+
+O Flyway foi utilizado para versionamento e criação automática das tabelas do banco de dados.
+
+## Migrations
+
+* V1__create-table-usuarios.sql
+* V2__create-table-exercicios.sql
+* V3__create-table-sessoes.sql
+* V4__create-table-sessao-exercicios.sql
+* V5__insert-exercicios-iniciais.sql
+
+---
 
 # Integração Externa
 
@@ -201,7 +277,7 @@ spring.datasource.password=sua_senha
 
 ---
 
-## 4. Rodar o projeto
+## 4. Executar o projeto
 
 Executar a classe:
 
@@ -237,16 +313,100 @@ EcoafonoApplication.java
 
 ---
 
-
-
 # Diagramas
 
-## Entidades
+## Diagrama de Entidades
 
-Usuario → Sessao → Exercicio
+```text
+┌──────────────────────────┐
+│         Usuario          │
+├──────────────────────────┤
+│ id                       │
+│ nome                     │
+│ email                    │
+│ cep                      │
+│ logradouro               │
+│ cidade                   │
+│ estado                   │
+│ faixaEtaria              │
+│ objetivo                 │
+└─────────────┬────────────┘
+              │ 1
+              │
+              │
+              │ N
+┌─────────────▼────────────┐
+│         Sessao           │
+├──────────────────────────┤
+│ id                       │
+│ data                     │
+│ usuario_id               │
+└─────────────┬────────────┘
+              │ N
+              │
+              │
+              │ N
+┌─────────────▼────────────┐
+│       Exercicio          │
+├──────────────────────────┤
+│ id                       │
+│ nome                     │
+│ descricao                │
+│ instrucao                │
+│ faixaEtaria              │
+│ objetivo                 │
+└──────────────────────────┘
+```
+
+---
+
+## Casos de Uso
+
+### Cadastro de Usuário
+
+* Usuário informa seus dados.
+* Sistema consulta o ViaCEP.
+* Sistema salva o usuário no banco.
+
+### Consulta de Exercícios
+
+* Usuário consulta exercícios disponíveis.
+* Sistema filtra por faixa etária e objetivo.
+
+### Atualização de Preferências
+
+* Usuário altera faixa etária e objetivo.
+
+### Criação de Sessão
+
+* Sistema identifica o perfil do usuário.
+* Sistema busca exercícios compatíveis.
+* Sistema cria sessão personalizada.
+
+### Consulta de Sessão
+
+* Usuário consulta sessões já criadas.
+
+---
+
+# Testes Realizados
+
+Os testes da API foram realizados utilizando Postman.
+
+## Fluxos testados
+
+* Cadastro de usuário
+* Consulta de CEP
+* Atualização de preferências
+* Listagem de exercícios
+* Criação de sessões
+* Busca de sessões
+* Validação de campos obrigatórios
+* Tratamento de CEP inválido
+* Tratamento de usuário inexistente
 
 ---
 
 # Considerações Finais
 
-O projeto Ecoa Fono permitiu aplicar os conceitos de SOA e Web Services através da construção de uma API REST completa, utilizando integração com serviços externos, persistência em banco de dados relacional, tratamento de erros e arquitetura organizada em camadas.
+O projeto Ecoa Fono permitiu aplicar os conceitos de SOA e Web Services através da construção de uma API REST completa, utilizando integração com serviços externos, persistência em banco de dados relacional, tratamento de erros, validações e arquitetura organizada em camadas.
