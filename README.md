@@ -44,7 +44,7 @@ O funcionamento da API segue o seguinte fluxo:
 
 9. O sistema permite consultar usuários, exercícios e sessões já criadas.
 
-Dessa forma, o projeto aplica conceitos de Arquitetura Orientada a Serviços e Web Services, utilizando endpoints REST, integração com serviço externo, persistência em MySQL, validação de dados, tratamento de exceções e organização em camadas.
+Dessa forma, o projeto aplica conceitos de Arquitetura Orientada a Serviços e Web Services, utilizando endpoints REST, integração com serviço externo, persistência em MySQL, validação de dados, tratamento de exceções, autenticação JWT, criptografia de senhas com BCrypt e organização em camadas.
 
 ---
 
@@ -72,6 +72,13 @@ Dessa forma, o projeto aplica conceitos de Arquitetura Orientada a Serviços e W
 
 * Consulta automática de endereço via ViaCEP
 
+## Segurança
+
+* Autenticação com JWT
+* Proteção de endpoints
+* Criptografia de senha com BCrypt
+* Controle de acesso por perfil ADMIN
+
 ---
 
 # Tecnologias Utilizadas
@@ -79,6 +86,9 @@ Dessa forma, o projeto aplica conceitos de Arquitetura Orientada a Serviços e W
 * Java 21
 * Spring Boot 3.5.6
 * Spring Data JPA
+* Spring Security
+* JWT Authentication
+* BCrypt
 * MySQL
 * Flyway
 * Maven
@@ -99,6 +109,12 @@ O projeto foi estruturado utilizando arquitetura em camadas.
                     ┌───────────────────────┐
                     │       Postman         │
                     │ Cliente HTTP/REST API │
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │     SecurityFilter    │
+                    │ Validação do Token    │
                     └───────────┬───────────┘
                                 │
                                 ▼
@@ -136,23 +152,6 @@ O projeto foi estruturado utilizando arquitetura em camadas.
 
 ---
 
-# Estrutura de Pastas
-
-```text
-src/main/java/com/ecoafono
-
-├── config
-├── controller
-├── domain/model
-├── dto
-├── enums
-├── exception
-├── repository
-└── service
-```
-
----
-
 # Banco de Dados
 
 O projeto utiliza MySQL como banco de dados principal.
@@ -167,19 +166,7 @@ COLLATE utf8mb4_unicode_ci;
 
 ---
 
-# Flyway
 
-O Flyway foi utilizado para versionamento e criação automática das tabelas do banco de dados.
-
-## Migrations
-
-* V1__create-table-usuarios.sql
-* V2__create-table-exercicios.sql
-* V3__create-table-sessoes.sql
-* V4__create-table-sessao-exercicios.sql
-* V5__insert-exercicios-iniciais.sql
-
----
 
 # Integração Externa
 
@@ -194,6 +181,16 @@ https://viacep.com.br/ws/{cep}/json/
 ---
 
 # Endpoints
+
+## Autenticação
+
+### Login
+
+```http
+POST /login
+```
+
+---
 
 ## Usuários
 
@@ -287,7 +284,41 @@ EcoafonoApplication.java
 
 ---
 
+## 5. Realizar autenticação
+
+Utilizar o endpoint:
+
+```http
+POST /login
+```
+
+Body:
+
+```json
+{
+  "login": "admin",
+  "senha": "admin"
+}
+```
+
+O sistema retornará um token JWT.
+
+Esse token deve ser utilizado nos demais endpoints através do Bearer Token no Postman.
+
+---
+
 # Exemplos de Requisição
+
+## Login
+
+```json
+{
+  "login": "admin",
+  "senha": "admin"
+}
+```
+
+---
 
 ## Criar usuário
 
@@ -318,6 +349,16 @@ EcoafonoApplication.java
 ## Diagrama de Entidades
 
 ```text
+┌──────────────────────────┐
+│     UsuarioSistema       │
+├──────────────────────────┤
+│ id                       │
+│ login                    │
+│ senha                    │
+│ perfil                   │
+└──────────────────────────┘
+
+
 ┌──────────────────────────┐
 │         Usuario          │
 ├──────────────────────────┤
@@ -387,6 +428,12 @@ EcoafonoApplication.java
 
 * Usuário consulta sessões já criadas.
 
+### Autenticação
+
+* Usuário administrador realiza login.
+* Sistema gera token JWT.
+* Token é utilizado para acessar endpoints protegidos.
+
 ---
 
 # Testes Realizados
@@ -404,9 +451,12 @@ Os testes da API foram realizados utilizando Postman.
 * Validação de campos obrigatórios
 * Tratamento de CEP inválido
 * Tratamento de usuário inexistente
+* Autenticação JWT
+* Validação de token
+* Login com senha criptografada
 
 ---
 
 # Considerações Finais
 
-O projeto Ecoa Fono permitiu aplicar os conceitos de SOA e Web Services através da construção de uma API REST completa, utilizando integração com serviços externos, persistência em banco de dados relacional, tratamento de erros, validações e arquitetura organizada em camadas.
+O projeto Ecoa Fono permitiu aplicar os conceitos de SOA e Web Services através da construção de uma API REST completa, utilizando integração com serviços externos, persistência em banco de dados relacional, tratamento de erros, autenticação JWT, criptografia de senhas com BCrypt, validações e arquitetura organizada em camadas.
